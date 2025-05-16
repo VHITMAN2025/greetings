@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgive Me?</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            background: url('/background.jpg') no-repeat center/cover;
+            color: white;
+            overflow: hidden;
+        }
+        .container {
+            margin-top: 150px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            display: inline-block;
+            animation: fadeIn 2s ease-in-out;
+        }
+        h1 {
+            font-size: 40px;
+            color: pink;
+        }
+        p {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 20px;
+            border: none;
+            background-color: lightcoral;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: red;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .heart {
+            position: absolute;
+            font-size: 24px;
+            color: red;
+            animation: floatUp 3s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>I'm So Sorry, My Friend 💔</h1>
+        <p>I never meant to hurt you. You mean everything to me, and I deeply regret my mistake.</p>
+        <p>Please forgive me and let's make beautiful memories together again! 💕</p>
+        <button onclick="showHearts()">Forgive Me?</button>
+    </div>
+
+    <script>
+        function showHearts() {
+            fetch('/hearts') // Call the Node.js backend
+                .then(response => response.json())
+                .then(data => {
+                    for (let i = 0; i < data.count; i++) {
+                        let heart = document.createElement("div");
+                        heart.innerHTML = "❤️";
+                        heart.classList.add("heart");
+                        document.body.appendChild(heart);
+
+                        heart.style.left = Math.random() * window.innerWidth + "px";
+                        heart.style.top = window.innerHeight + "px";
+
+                        setTimeout(() => heart.remove(), 3000);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
