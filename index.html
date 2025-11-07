@@ -1,89 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgive Me?</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            text-align: center;
-            background: url('/background.jpg') no-repeat center/cover;
-            color: white;
-            overflow: hidden;
-        }
-        .container {
-            margin-top: 150px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 30px;
-            border-radius: 15px;
-            display: inline-block;
-            animation: fadeIn 2s ease-in-out;
-        }
-        h1 {
-            font-size: 40px;
-            color: pink;
-        }
-        p {
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 12px 24px;
-            font-size: 20px;
-            border: none;
-            background-color: lightcoral;
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover {
-            background-color: red;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .heart {
-            position: absolute;
-            font-size: 24px;
-            color: red;
-            animation: floatUp 3s linear infinite;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100vh); opacity: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Flipbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body, html { margin:0; padding:0; height:100%; font-family:'Roboto', sans-serif; overflow:hidden; background:#1a2a6c; }
+  
+  /* LOGIN PAGE */
+  #loginContainer {
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    height:100vh; background: linear-gradient(135deg,#ff9a9e,#fad0c4);
+  }
+  #loginContainer input { padding:10px 20px; font-size:1.2rem; margin:10px 0; border-radius:10px; border:none; }
+  #loginContainer button { padding:10px 20px; font-size:1.2rem; border:none; border-radius:10px; background:#fff; cursor:pointer; }
+
+  /* FLIPBOOK */
+  #flipbookContainer { display:none; width:100%; height:100vh; position:relative; }
+  canvas#bgCanvas { position:fixed; top:0; left:0; z-index:0; }
+
+  .main-container { position:relative; z-index:10; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .main-image { width:60%; max-width:600px; border-radius:15px; box-shadow:0 20px 40px rgba(0,0,0,0.4); transition: transform 0.3s ease; perspective:1000px; }
+  .quote { font-family:'Pacifico', cursive; font-size:2rem; color:#fff; text-align:center; margin-top:20px; text-shadow:2px 2px 6px rgba(0,0,0,0.5); padding:0 15px; }
+
+  .nav-buttons { margin-top:30px; display:flex; gap:20px; }
+  .nav-buttons button { padding:10px 20px; border-radius:50px; border:none; font-size:1rem; background:rgba(255,255,255,0.3); color:#fff; cursor:pointer; transition:0.3s; }
+  .nav-buttons button:hover { background:rgba(255,255,255,0.6); }
+
+  .audio-controls { position:fixed; bottom:20px; right:20px; z-index:15; }
+
+  @media(max-width:768px){ .main-image { width:80%; } .quote { font-size:1.4rem; margin-top:15px; } }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>I'm So Sorry, My Friend 💔</h1>
-        <p>I never meant to hurt you. You mean everything to me, and I deeply regret my mistake.</p>
-        <p>Please forgive me and let's make beautiful memories together again! 💕</p>
-        <button onclick="showHearts()">Forgive Me?</button>
+
+<!-- LOGIN PAGE -->
+<div id="loginContainer">
+  <h1>Enter Her Name</h1>
+  <input type="text" id="userName" placeholder="Her Name">
+  <button id="submitName">Submit</button>
+</div>
+
+<!-- FLIPBOOK -->
+<div id="flipbookContainer">
+  <canvas id="bgCanvas"></canvas>
+  <div class="main-container">
+    <img class="main-image" id="mainImage" src="" alt="AI Image">
+    <div class="quote" id="quote"></div>
+    <div class="nav-buttons">
+      <button id="prev">Previous</button>
+      <button id="next">Next</button>
     </div>
+  </div>
+  <!-- MUSIC -->
+  <audio id="bg-music" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  <button class="audio-controls" id="music-toggle">⏸️</button>
+</div>
 
-    <script>
-        function showHearts() {
-            fetch('/hearts') // Call the Node.js backend
-                .then(response => response.json())
-                .then(data => {
-                    for (let i = 0; i < data.count; i++) {
-                        let heart = document.createElement("div");
-                        heart.innerHTML = "❤️";
-                        heart.classList.add("heart");
-                        document.body.appendChild(heart);
+<script>
+  const loginContainer = document.getElementById('loginContainer');
+  const submitBtn = document.getElementById('submitName');
+  const flipbookContainer = document.getElementById('flipbookContainer');
+  const userNameInput = document.getElementById('userName');
+  const mainImage = document.getElementById('mainImage');
+  const quoteText = document.getElementById('quote');
+  const music = document.getElementById('bg-music');
+  const musicBtn = document.getElementById('music-toggle');
 
-                        heart.style.left = Math.random() * window.innerWidth + "px";
-                        heart.style.top = window.innerHeight + "px";
+  let userName = "Prasanna"; 
+  let currentIndex = 0;
 
-                        setTimeout(() => heart.remove(), 3000);
-                    }
-                });
-        }
-    </script>
+  const images = [
+    "https://i.pinimg.com/736x/6b/85/bb/6b85bbdd656cbf88713e7e3bbece783e.jpg",
+    "https://asset.gecdesigns.com/img/wallpapers/beautiful-young-indian-girl-with-traditional-attire-ai-generated-wallpaper-sr20092402-cover.webp",
+    "https://i.pinimg.com/736x/1e/00/1c/1e001c4f261cc7499c2ba6aeb371648b.jpg",
+    "https://easy-peasy.ai/cdn-cgi/image/quality%3D80/https://media.easy-peasy.ai/27feb2bb-aeb4-4a83-9fb6-8f3f2a15885e/74ec3112-d9fe-429a-8247-f415751d292e.png",
+    "https://i.pinimg.com/736x/fd/66/eb/fd66ebf1138810d49e34d3ef63f820ea.jpg"
+  ];
+
+  let quotesArr = [
+    `Happy Birthday ${userName}! 🎉 Sorry for the late wishes!`,
+    "Elegance is the only beauty that never fades.",
+    "Traditions are the bridges that connect generations.",
+    "A smile is the most beautiful ornament a girl can wear.",
+    "Every picture tells a story, every dress holds a memory."
+  ];
+
+  function updateContent() {
+    mainImage.src = images[currentIndex];
+    quoteText.textContent = quotesArr[currentIndex];
+  }
+
+  document.getElementById('next').addEventListener('click', ()=>{
+    currentIndex = (currentIndex+1)%images.length;
+    updateContent();
+  });
+  document.getElementById('prev').addEventListener('click', ()=>{
+    currentIndex = (currentIndex-1+images.length)%images.length;
+    updateContent();
+  });
+
+  musicBtn.addEventListener('click', ()=>{
+    if(music.paused){ music.play(); musicBtn.textContent='⏸️'; }
+    else { music.pause(); musicBtn.textContent='▶️'; }
+  });
+
+  // Submit Name → Open Flipbook & Play Song
+  submitBtn.addEventListener('click', ()=>{
+    userName = userNameInput.value.trim() || "Prasanna";
+    quotesArr[0] = `Happy Birthday ${userName}! 🎉 Sorry for the late wishes!`;
+    loginContainer.style.display = 'none';
+    flipbookContainer.style.display = 'block';
+    music.play().catch(()=>{}); // plays immediately after user click
+    updateContent();
+  });
+
+  // BACKGROUND PARTICLES
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+  const particles = [];
+  class Particle {
+    constructor(){
+      this.x = Math.random()*width; this.y = Math.random()*height;
+      this.size = Math.random()*4+2;
+      this.speedX = (Math.random()-0.5)*0.7; this.speedY = (Math.random()-0.5)*0.7;
+      this.color = `rgba(255,255,255,${Math.random()*0.5+0.2})`;
+    }
+    update(){ this.x+=this.speedX; this.y+=this.speedY;
+      if(this.x>width)this.x=0; if(this.x<0)this.x=width;
+      if(this.y>height)this.y=0; if(this.y<0)this.y=height;
+    }
+    draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); }
+  }
+  function initParticles(num){ for(let i=0;i<num;i++){particles.push(new Particle());} }
+  function animateParticles(){ ctx.clearRect(0,0,width,height); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animateParticles);}
+  initParticles(150); animateParticles();
+  window.addEventListener('resize', ()=>{ width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; });
+
+  // IMAGE PARALLAX
+  document.addEventListener('mousemove',(e)=>{
+    const moveX=(e.clientX/width-0.5)*20;
+    const moveY=(e.clientY/height-0.5)*20;
+    mainImage.style.transform = `translate(${moveX}px,${moveY}px) scale(1.02)`;
+  });
+  document.addEventListener('mouseleave',()=>{ mainImage.style.transform=`translate(0px,0px) scale(1)`; });
+
+</script>
 </body>
 </html>
